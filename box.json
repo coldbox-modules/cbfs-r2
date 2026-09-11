@@ -1,0 +1,50 @@
+{
+  "name": "cbfs-r2",
+  "slug": "cbfs-r2",
+  "version": "0.1.0",
+  "type": "modules",
+  "author": "Eric Peterson <eric@elpete.com>",
+  "shortDescription": "Cloudflare R2 disk provider for cbfs",
+  "dependencies": {
+    "cbfs": "1.1.4+4",
+    "r2sdk": "0.1.0"
+  },
+  "installPaths": {
+    "cbfs": "modules/cbfs/",
+    "r2sdk": "modules/r2sdk/"
+  },
+  "ignore": [
+    "**/.*",
+    "build",
+    "test-harness",
+    "/modules/",
+    "/server*.json",
+    "/CONTRIBUTING.md",
+    "/SECURITY.md"
+  ],
+  "license": [
+    {
+      "type": "Apache2",
+      "URL": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
+  "keywords": "cloudflare,r2,s3,coldbox,storage,boxlang,cfml",
+  "scripts": {
+    "format": "cfformat run models,ModuleConfig.cfc,test-harness/**/*.cfc,build/*.cfc --overwrite",
+    "format:check": "cfformat check models,ModuleConfig.cfc,test-harness/**/*.cfc,build/*.cfc",
+    "test": "!python3 build/test.py",
+    "build:module": "!python3 build/package.py",
+    "build:docs": "task run taskFile=build/Docs.cfc"
+  },
+  "devDependencies": {
+    "commandbox-cfformat": "0.21.0",
+    "commandbox-docbox": "2.5.0+5"
+  },
+  "homepage": "https://github.com/coldbox-modules/cbfs-r2",
+  "documentation": "https://github.com/coldbox-modules/cbfs-r2/blob/main/README.md",
+  "bugs": "https://github.com/coldbox-modules/cbfs-r2/issues",
+  "repository": {
+    "type": "git",
+    "URL": "https://github.com/coldbox-modules/cbfs-r2"
+  }
+}

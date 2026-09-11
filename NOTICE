@@ -1,0 +1,7 @@
+cbfs-r2
+Copyright 2026 Eric Peterson
+
+Uses the Apache-2.0 licensed s3sdk and ColdBox libraries by Ortus Solutions.
+The cbfs provider extends the Apache-2.0 licensed cbfs S3 provider.
+Cloudflare and Amazon trademarks belong to their respective owners.
+This is an independent integration, not an official Cloudflare SDK.

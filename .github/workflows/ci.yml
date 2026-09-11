@@ -1,0 +1,151 @@
+name: Verify and release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ["boxlang@1.17.2+56", "lucee@6", "adobe@2023"]
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: Ortus-Solutions/setup-commandbox@v2.0.1
+      - name: Install BoxLang support
+        run: box install commandbox-boxlang
+      - name: Standalone HTTP contract
+        run: python3 build/test.py --engine '${{ matrix.engine }}' --output "$RUNNER_TEMP/test-results"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tests-${{ strategy.job-index }}
+          path: ${{ runner.temp }}/test-results
+          if-no-files-found: error
+          retention-days: 14
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: Ortus-Solutions/setup-commandbox@v2.0.1
+      - name: Install build tooling
+        run: |
+          box install commandbox-cfformat@0.21.0
+          box install commandbox-docbox@2.5.0+5
+      - name: Test release refusal rules
+        run: |
+          python3 build/test_release_preflight.py
+          python3 build/test_sdk_selection.py
+      - run: box run-script format:check
+      - run: box install --production
+      - run: box run-script build:docs
+      - name: Build and verify reproducibility
+        env:
+          MODULE_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 build/package.py --repository "$MODULE_REPOSITORY"
+          python3 build/package.py --repository "$MODULE_REPOSITORY" --output "$RUNNER_TEMP/rebuild"
+          diff .artifacts/manifest.json "$RUNNER_TEMP/rebuild/manifest.json"
+          test -f .artifacts/apidocs/index.html
+          tar -czf .artifacts/api-docs.tar.gz -C .artifacts/apidocs .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          include-hidden-files: true
+          path: |
+            .artifacts/*.zip
+            .artifacts/*.sha256
+            .artifacts/manifest.json
+            .artifacts/api-docs.tar.gz
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [test, package]
+    runs-on: ubuntu-latest
+    environment: forgebox
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Check release version
+        id: version
+        run: |
+          VERSION=$(jq -r .version box.json)
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+          if git show-ref --verify --quiet "refs/tags/v$VERSION"; then
+            echo 'needed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'needed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/download-artifact@v4
+        if: steps.version.outputs.needed == 'true'
+        with:
+          name: release-artifacts
+          path: release-artifacts
+      - uses: actions/setup-java@v4
+        if: steps.version.outputs.needed == 'true'
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: Ortus-Solutions/setup-commandbox@v2.0.1
+        if: steps.version.outputs.needed == 'true'
+      - uses: actions/setup-python@v5
+        if: steps.version.outputs.needed == 'true'
+        with:
+          python-version: '3.12'
+      - name: Create draft and publish verified artifact
+        if: steps.version.outputs.needed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FORGEBOX_TOKEN: ${{ secrets.FORGEBOX_TOKEN }}
+          RELEASE_VERSION: ${{ steps.version.outputs.value }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test -n "$FORGEBOX_TOKEN"
+          cd release-artifacts
+          sha256sum --check *.sha256
+          SLUG=$(jq -r .package.slug manifest.json)
+          python3 "$GITHUB_WORKSPACE/build/release_preflight.py" "$SLUG" "$RELEASE_VERSION"
+          RELEASE_FLAGS=()
+          if [[ "$RELEASE_VERSION" == *-* ]]; then
+            RELEASE_FLAGS+=(--prerelease)
+          fi
+          gh release create "v$RELEASE_VERSION" "${RELEASE_FLAGS[@]}" --draft --target "$RELEASE_SHA" --title "$SLUG $RELEASE_VERSION" --notes-file ../CHANGELOG.md
+          gh release upload "v$RELEASE_VERSION" "$SLUG-$RELEASE_VERSION.zip" "$SLUG-$RELEASE_VERSION.zip.sha256" manifest.json api-docs.tar.gz
+          mkdir "$RUNNER_TEMP/publish-module"
+          unzip "$SLUG-$RELEASE_VERSION.zip" -d "$RUNNER_TEMP/publish-module"
+          box config set endpoints.forgebox.APIToken="$FORGEBOX_TOKEN"
+          cd "$RUNNER_TEMP/publish-module"
+          box forgebox publish
+          cd "$GITHUB_WORKSPACE"
+          gh release edit "v$RELEASE_VERSION" --draft=false

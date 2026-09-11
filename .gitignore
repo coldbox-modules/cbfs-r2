@@ -1,0 +1,11 @@
+/modules/
+/test-harness/coldbox/
+/test-harness/testbox/
+/test-harness/modules/
+/.engine/
+/.artifacts/
+/.tmp/
+.env*
+!.env.example
+**/__pycache__/
+/test-harness/tests/results/

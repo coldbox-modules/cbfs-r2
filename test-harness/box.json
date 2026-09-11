@@ -1,0 +1,12 @@
+{
+  "name": "cbfs-r2 test harness",
+  "private": true,
+  "dependencies": {
+    "coldbox": "8.1.0+34",
+    "testbox": "7.0.0+19"
+  },
+  "installPaths": {
+    "coldbox": "coldbox/",
+    "testbox": "testbox/"
+  }
+}
