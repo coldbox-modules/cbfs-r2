@@ -31,7 +31,7 @@ jobs:
         run: box install commandbox-boxlang
       - name: Standalone HTTP contract
         run: box task run build/TestStandalone.cfc run '${{ matrix.engine }}' "$RUNNER_TEMP/test-results"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: tests-${{ strategy.job-index }}
@@ -68,7 +68,7 @@ jobs:
           diff .artifacts/manifest.json "$RUNNER_TEMP/rebuild/manifest.json"
           test -f .artifacts/apidocs/index.html
           tar -czf .artifacts/api-docs.tar.gz -C .artifacts/apidocs .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-artifacts
           include-hidden-files: true
