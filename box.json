@@ -1,13 +1,13 @@
 {
   "name": "cbfs-r2",
   "slug": "cbfs-r2",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "modules",
   "author": "Eric Peterson <eric@elpete.com>",
   "shortDescription": "Cloudflare R2 disk provider for cbfs",
   "dependencies": {
     "cbfs": "1.1.4+4",
-    "r2sdk": "0.1.0"
+    "r2sdk": "1.0.0"
   },
   "installPaths": {
     "cbfs": "modules/cbfs/",
@@ -33,7 +33,7 @@
     "format": "cfformat run models,ModuleConfig.cfc,test-harness/**/*.cfc,build/*.cfc --overwrite && task run taskFile=build/VerifyDependencyTracking.cfc",
     "format:check": "cfformat check models,ModuleConfig.cfc,test-harness/**/*.cfc,build/*.cfc && task run taskFile=build/VerifyDependencyTracking.cfc",
     "test:dependency-tracking": "task run taskFile=build/VerifyDependencyTracking.cfc",
-    "test": "!python3 build/test.py",
+    "test": "task run taskFile=build/TestStandalone.cfc",
     "test:sdk-selection": "task run taskFile=build/VerifySdkSelection.cfc",
     "build:module": "task run taskFile=build/Package.cfc",
     "build:docs": "task run taskFile=build/Docs.cfc"
