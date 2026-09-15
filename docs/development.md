@@ -1,6 +1,6 @@
 # Development
 
-Requirements: macOS or Linux, CommandBox 6.3+, Java 21, Python 3.10+, and Git.
+Requirements: macOS or Linux, CommandBox 6.3+, Java 21, and Git.
 The local runner uses Unix process and file-lock APIs; hosted jobs run on Ubuntu. Install
 `commandbox-boxlang`, `commandbox-cfformat`, and `commandbox-docbox` in CommandBox.
 The module source is CFML so it can load on BoxLang with CFML compatibility,
@@ -14,27 +14,27 @@ box install
 box run-script format:check
 box task run build/ForgeBoxReleasePreflight selftest
 box run-script test:sdk-selection
-python3 build/test.py --engine boxlang@1.17.2+56
-python3 build/test.py --engine lucee@6
-python3 build/test.py --engine adobe@2023
+box task run build/TestStandalone.cfc run boxlang@1.17.2+56
+box task run build/TestStandalone.cfc run lucee@6
+box task run build/TestStandalone.cfc run adobe@2023
 ```
 
 The repository rejects installed dependency source in Git during formatting checks.
 The runner copies source to a disposable workspace, installs dependencies from
-ForgeBox, starts its own loopback-only server and an independent Python R2
+ForgeBox, starts its own loopback-only server and an independent Java 21 R2
 protocol fixture, runs TestBox, and removes its servers and workspace. It never
 starts CommuniArts or requires Cloudflare credentials. It writes logs, TestBox
 JSON, source hashes, and a cleanup report to a new temporary evidence directory.
-Use `--output /absolute/new/directory` to choose that directory. A failing,
+Pass the output directory as the second task argument to choose it. A failing,
 empty, errored, skipped, or source-modifying run exits nonzero.
 
 The fixture independently checks Signature V4 over actual HTTP and stores binary
 objects in memory. It is not a mock of SDK methods. Cloudflare IAM, TLS, billing,
 CORS, custom domains, and real service limits still need a live smoke test.
 
-For cbfs-r2 before the SDK's first publication, pass
-`--sdk-source /absolute/path/to/r2sdk`. Source packages can remain siblings;
-release artifacts must contain an exact published ForgeBox dependency.
+For cbfs-r2 development against an explicit local SDK checkout, pass its path
+as the third task argument. Hosted release verification uses the published
+dependency from ForgeBox.
 
 ## Make changes
 
@@ -56,6 +56,5 @@ repository metadata.
 See [releasing](releasing.md) for publication gates and recovery.
 
 The runner never discovers a sibling SDK implicitly. A published `r2sdk` version
-is installed as declared unless `--sdk-source` is explicitly supplied. Folder
-dependencies require that explicit development override. Hosted release verification
-must omit it.
+is installed as declared unless a source path is explicitly supplied. Folder
+dependencies require that explicit development override.

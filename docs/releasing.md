@@ -8,8 +8,8 @@ new versions from `main` after all required jobs pass.
 
 1. Confirm repository ownership and ForgeBox slug ownership. Preserve Apache
    licensing and attribution. Set repository homepage/bugs/documentation metadata.
-2. Publish r2sdk first. Replace cbfs-r2's development folder dependency with the
-   exact released SDK version and test that published dependency in a clean install.
+2. Publish r2sdk first. Keep cbfs-r2's dependency pinned to the exact released
+   SDK version and test that published dependency in a clean install.
 3. Add `FORGEBOX_TOKEN` as a secret on the `forgebox` GitHub environment. The
    workflow's built-in GitHub token needs contents-write permission for releases.
    Restrict this environment to the protected `main` branch. Optional environment

@@ -26,14 +26,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - uses: Ortus-Solutions/setup-commandbox@v2.0.1
       - name: Install BoxLang support
         run: box install commandbox-boxlang
       - name: Standalone HTTP contract
-        run: python3 build/test.py --engine '${{ matrix.engine }}' --output "$RUNNER_TEMP/test-results"
+        run: box task run build/TestStandalone.cfc run '${{ matrix.engine }}' "$RUNNER_TEMP/test-results"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -11,7 +11,7 @@ component {
 			"r2sdk" : {
 				"accessKey"              : "contract-access",
 				"secretKey"              : "contract-secret",
-				"awsDomain"              : "127.0.0.1:" & getSystemSetting( "R2_CONTRACT_PORT" ),
+				"awsDomain"              : "127.0.0.1:" & createObject( "java", "java.lang.System" ).getenv( "R2_CONTRACT_PORT" ),
 				"defaultBucketName"      : "private-contract",
 				"allowInsecureLocalhost" : true,
 				"defaultTimeOut"         : 5,
