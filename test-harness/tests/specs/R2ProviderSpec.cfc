@@ -8,7 +8,7 @@ component
 		describe( "R2 S3 HTTP contract", () => {
 			beforeEach( () => setup() );
 			it( "signs actual HTTP requests, preserves binary bytes, and issues private and public URLs", () => {
-				var port = val( getSystemSetting( "R2_CONTRACT_PORT", "0" ) );
+				var port = val( createObject( "java", "java.lang.System" ).getenv( "R2_CONTRACT_PORT" ) );
 				expect( port ).toBeGT( 0 );
 				var endpoint = "127.0.0.1:#port#";
 				var disk     = getWireBox().getInstance( "R2Provider@cbfs-r2" );
