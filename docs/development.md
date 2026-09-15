@@ -12,13 +12,14 @@ a configured job is not evidence of a passing run.
 ```sh
 box install
 box run-script format:check
-python3 build/test_release_preflight.py
-python3 build/test_sdk_selection.py
+box task run build/ForgeBoxReleasePreflight selftest
+box run-script test:sdk-selection
 python3 build/test.py --engine boxlang@1.17.2+56
 python3 build/test.py --engine lucee@6
 python3 build/test.py --engine adobe@2023
 ```
 
+The repository rejects installed dependency source in Git during formatting checks.
 The runner copies source to a disposable workspace, installs dependencies from
 ForgeBox, starts its own loopback-only server and an independent Python R2
 protocol fixture, runs TestBox, and removes its servers and workspace. It never
@@ -49,7 +50,8 @@ keys, signed production URLs, or uploaded user files in fixtures.
 `box run-script build:module` creates a deterministic package ZIP and SHA-256
 manifest under `.artifacts`. It refuses folder dependencies; use the documented
 SDK version override when preparing the first provider release. Run
-`python3 build/package.py --help` for packaging options.
+`box task run build/Package run .artifacts '' owner/repository` to build with
+repository metadata.
 
 See [releasing](releasing.md) for publication gates and recovery.
 
