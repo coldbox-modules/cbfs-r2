@@ -100,7 +100,7 @@ jobs:
           else
             echo 'needed=true' >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         if: steps.version.outputs.needed == 'true'
         with:
           name: release-artifacts
