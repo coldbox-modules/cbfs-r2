@@ -30,10 +30,12 @@
   ],
   "keywords": "cloudflare,r2,s3,coldbox,storage,boxlang,cfml",
   "scripts": {
-    "format": "cfformat run models,ModuleConfig.cfc,test-harness/**/*.cfc,build/*.cfc --overwrite",
-    "format:check": "cfformat check models,ModuleConfig.cfc,test-harness/**/*.cfc,build/*.cfc",
+    "format": "cfformat run models,ModuleConfig.cfc,test-harness/**/*.cfc,build/*.cfc --overwrite && task run taskFile=build/VerifyDependencyTracking.cfc",
+    "format:check": "cfformat check models,ModuleConfig.cfc,test-harness/**/*.cfc,build/*.cfc && task run taskFile=build/VerifyDependencyTracking.cfc",
+    "test:dependency-tracking": "task run taskFile=build/VerifyDependencyTracking.cfc",
     "test": "!python3 build/test.py",
-    "build:module": "!python3 build/package.py",
+    "test:sdk-selection": "task run taskFile=build/VerifySdkSelection.cfc",
+    "build:module": "task run taskFile=build/Package.cfc",
     "build:docs": "task run taskFile=build/Docs.cfc"
   },
   "devDependencies": {

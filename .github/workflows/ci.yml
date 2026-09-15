@@ -50,9 +50,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
       - uses: Ortus-Solutions/setup-commandbox@v2.0.1
       - name: Install build tooling
         run: |
@@ -60,8 +57,8 @@ jobs:
           box install commandbox-docbox@2.5.0+5
       - name: Test release refusal rules
         run: |
-          python3 build/test_release_preflight.py
-          python3 build/test_sdk_selection.py
+          box task run build/ForgeBoxReleasePreflight selftest
+          box run-script test:sdk-selection
       - run: box run-script format:check
       - run: box install --production
       - run: box run-script build:docs
@@ -69,8 +66,8 @@ jobs:
         env:
           MODULE_REPOSITORY: ${{ github.repository }}
         run: |
-          python3 build/package.py --repository "$MODULE_REPOSITORY"
-          python3 build/package.py --repository "$MODULE_REPOSITORY" --output "$RUNNER_TEMP/rebuild"
+          box task run build/Package run .artifacts '' "$MODULE_REPOSITORY"
+          box task run build/Package run "$RUNNER_TEMP/rebuild" '' "$MODULE_REPOSITORY"
           diff .artifacts/manifest.json "$RUNNER_TEMP/rebuild/manifest.json"
           test -f .artifacts/apidocs/index.html
           tar -czf .artifacts/api-docs.tar.gz -C .artifacts/apidocs .
@@ -118,10 +115,6 @@ jobs:
           java-version: '21'
       - uses: Ortus-Solutions/setup-commandbox@v2.0.1
         if: steps.version.outputs.needed == 'true'
-      - uses: actions/setup-python@v5
-        if: steps.version.outputs.needed == 'true'
-        with:
-          python-version: '3.12'
       - name: Create draft and publish verified artifact
         if: steps.version.outputs.needed == 'true'
         env:
@@ -135,7 +128,7 @@ jobs:
           cd release-artifacts
           sha256sum --check *.sha256
           SLUG=$(jq -r .package.slug manifest.json)
-          python3 "$GITHUB_WORKSPACE/build/release_preflight.py" "$SLUG" "$RELEASE_VERSION"
+          box task run "$GITHUB_WORKSPACE/build/ForgeBoxReleasePreflight" run "$SLUG" "$RELEASE_VERSION"
           RELEASE_FLAGS=()
           if [[ "$RELEASE_VERSION" == *-* ]]; then
             RELEASE_FLAGS+=(--prerelease)
